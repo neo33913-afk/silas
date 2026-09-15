@@ -1,0 +1,884 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Dashboard Admin — SILAS</title>
+
+<link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,500;9..144,600;9..144,700&family=Plus+Jakarta+Sans:wght@400;500;600;700&display=swap" rel="stylesheet">
+
+<style>
+  /* ============================================================
+     1. DESIGN TOKENS (konsisten dengan halaman Login)
+     ============================================================ */
+  :root{
+    --navy:        #101B33;
+    --navy-soft:   #1A2842;
+    --paper:       #F6F5F2;
+    --ink:         #16203A;
+    --muted:       #6B7280;
+    --border:      #E4E1DA;
+    --card:        #FFFFFF;
+
+    --admin:       #D99A3D;   /* aksen utama halaman Admin */
+    --admin-tint:  #FBF1DF;
+    --petugas:     #2E7D6B;
+    --petugas-tint:#E4F1EC;
+    --anggota:     #6C63A6;
+    --anggota-tint:#ECEAF6;
+
+    --danger:      #C1443D;
+    --danger-tint: #FBEAE9;
+    --warn:        #C07C22;
+    --warn-tint:   #FBF1DF;
+
+    --radius-sm: 8px;
+    --radius-md: 14px;
+    --radius-lg: 20px;
+
+    --sidebar-w: 258px;
+  }
+
+  *{ box-sizing: border-box; }
+  html,body{ height:100%; }
+  body{
+    margin:0;
+    font-family:'Plus Jakarta Sans', -apple-system, BlinkMacSystemFont, sans-serif;
+    background: var(--paper);
+    color: var(--ink);
+    -webkit-font-smoothing: antialiased;
+  }
+  .display-font{ font-family:'Fraunces', Georgia, serif; }
+  :focus-visible{ outline:2.5px solid var(--admin); outline-offset:2px; }
+  @media (prefers-reduced-motion: reduce){ *{ animation-duration:.001ms !important; transition-duration:.001ms !important; } }
+  a{ text-decoration:none; }
+  button{ font-family:inherit; }
+
+  /* ============================================================
+     2. SIDEBAR
+     ============================================================ */
+  .sidebar{
+    position: fixed;
+    top:0; left:0; bottom:0;
+    width: var(--sidebar-w);
+    background: radial-gradient(140% 120% at 15% 0%, var(--navy-soft) 0%, var(--navy) 60%);
+    color: #EDEFF5;
+    display:flex; flex-direction:column;
+    z-index: 1040;
+    transform: translateX(-100%);
+    transition: transform .22s ease;
+  }
+  .sidebar.is-open{ transform: translateX(0); }
+  @media (min-width: 992px){
+    .sidebar{ transform: translateX(0); }
+  }
+
+  .sb-brand{
+    display:flex; align-items:center; gap:.6rem;
+    padding: 1.4rem 1.3rem 1.1rem;
+    border-bottom: 1px solid rgba(255,255,255,.1);
+  }
+  .sb-brand-icon{
+    width:34px; height:34px; border-radius:9px; flex-shrink:0;
+    background: linear-gradient(155deg, var(--admin), var(--petugas));
+    display:flex; align-items:center; justify-content:center;
+  }
+  .sb-brand-text{ font-size:1.18rem; font-weight:700; line-height:1.1; }
+  .sb-brand-text small{
+    display:block; font-family:'Plus Jakarta Sans'; font-size:.62rem;
+    font-weight:500; letter-spacing:.03em; color:#9BA3B8; margin-top:2px;
+  }
+
+  .sb-scope{
+    margin: 1rem 1.3rem 0;
+    padding: .5rem .7rem;
+    border-radius: var(--radius-sm);
+    background: rgba(217,154,61,.14);
+    border: 1px solid rgba(217,154,61,.32);
+    font-size: .74rem;
+    color: #EFC988;
+    display:flex; align-items:center; gap:.4rem;
+  }
+  .sb-scope .dot{ width:7px;height:7px;border-radius:50%;background:var(--admin); flex-shrink:0; }
+
+  .sb-nav{ padding: 1.1rem .9rem; overflow-y:auto; flex:1; }
+  .sb-group-label{
+    font-size:.68rem; font-weight:600; color:#7C8499;
+    padding: .8rem .5rem .35rem;
+    letter-spacing: .02em;
+  }
+  .sb-link{
+    display:flex; align-items:center; gap:.7rem;
+    padding: .62rem .65rem;
+    border-radius: var(--radius-sm);
+    color:#C4CADA; font-size:.87rem; font-weight:500;
+    margin-bottom: .12rem;
+    transition: background-color .12s ease, color .12s ease;
+  }
+  .sb-link svg{ flex-shrink:0; opacity:.85; }
+  .sb-link:hover{ background: rgba(255,255,255,.06); color:#fff; }
+  .sb-link.active{
+    background: rgba(217,154,61,.16);
+    color: #F3D69C;
+    font-weight:600;
+  }
+  .sb-link.active svg{ opacity:1; }
+  .sb-link .badge-count{
+    margin-left:auto;
+    background: rgba(255,255,255,.12);
+    color:#D6DAE6;
+    font-size:.68rem;
+    padding: .1rem .45rem;
+    border-radius: 999px;
+    font-weight:600;
+  }
+
+  .sb-foot{
+    padding: 1rem 1.3rem 1.3rem;
+    border-top: 1px solid rgba(255,255,255,.1);
+  }
+  .sb-user{ display:flex; align-items:center; gap:.6rem; }
+  .sb-avatar{
+    width:36px; height:36px; border-radius:50%;
+    background: var(--admin); color:#3A2A0C;
+    display:flex; align-items:center; justify-content:center;
+    font-weight:700; font-size:.82rem; flex-shrink:0;
+  }
+  .sb-user-name{ font-size:.85rem; font-weight:600; color:#fff; line-height:1.2; }
+  .sb-user-role{ font-size:.72rem; color:#9BA3B8; }
+  .sb-logout{
+    margin-top: .9rem;
+    display:flex; align-items:center; gap:.5rem;
+    font-size:.82rem; color:#C4CADA;
+    padding: .55rem .6rem; border-radius: var(--radius-sm);
+    width:100%; background:transparent; border:1px solid rgba(255,255,255,.14);
+    cursor:pointer;
+  }
+  .sb-logout:hover{ background: rgba(255,255,255,.06); color:#fff; }
+
+  .sb-overlay{
+    display:none;
+    position:fixed; inset:0; background: rgba(9,13,24,.55);
+    z-index:1030;
+  }
+  .sb-overlay.is-open{ display:block; }
+  @media (min-width:992px){ .sb-overlay{ display:none !important; } }
+
+  /* ============================================================
+     3. MAIN AREA
+     ============================================================ */
+  .main{
+    min-height:100vh;
+  }
+  @media (min-width:992px){ .main{ margin-left: var(--sidebar-w); } }
+
+  .topbar{
+    position: sticky; top:0; z-index:1010;
+    background: rgba(246,245,242,.92);
+    backdrop-filter: blur(6px);
+    border-bottom: 1px solid var(--border);
+    padding: .85rem 1.25rem;
+    display:flex; align-items:center; gap:1rem;
+  }
+  @media (min-width:992px){ .topbar{ padding: 1rem 2rem; } }
+
+  .burger{
+    background:#fff; border:1.5px solid var(--border); border-radius: var(--radius-sm);
+    width:38px; height:38px; display:flex; align-items:center; justify-content:center;
+    cursor:pointer; flex-shrink:0;
+  }
+  @media (min-width:992px){ .burger{ display:none; } }
+
+  .topbar-search{
+    flex:1; max-width: 380px;
+    display:flex; align-items:center; gap:.5rem;
+    background:#fff; border:1.5px solid var(--border); border-radius: var(--radius-sm);
+    padding: .5rem .75rem;
+    color: var(--muted);
+  }
+  .topbar-search input{
+    border:none; outline:none; font-size:.85rem; width:100%;
+    font-family:inherit; color:var(--ink); background:transparent;
+  }
+  .topbar-search svg{ flex-shrink:0; }
+
+  .topbar-actions{ margin-left:auto; display:flex; align-items:center; gap:.6rem; }
+
+  .icon-btn{
+    position:relative;
+    width:38px; height:38px; border-radius: var(--radius-sm);
+    border:1.5px solid var(--border); background:#fff;
+    display:flex; align-items:center; justify-content:center;
+    color: var(--ink); cursor:pointer;
+  }
+  .icon-btn:hover{ background: var(--admin-tint); border-color: var(--admin); }
+  .icon-btn .ping{
+    position:absolute; top:-3px; right:-3px;
+    width:9px; height:9px; border-radius:50%;
+    background: var(--danger); border:2px solid var(--paper);
+  }
+
+  .topbar-user{
+    display:flex; align-items:center; gap:.55rem;
+    background:#fff; border:1.5px solid var(--border); border-radius: var(--radius-sm);
+    padding: .35rem .7rem .35rem .35rem; cursor:pointer;
+  }
+  .topbar-user .avatar{
+    width:30px;height:30px;border-radius:50%; background:var(--admin); color:#3A2A0C;
+    display:flex;align-items:center;justify-content:center; font-weight:700; font-size:.74rem;
+  }
+  .topbar-user span{ font-size:.82rem; font-weight:600; }
+  .topbar-user small{ display:block; font-size:.68rem; color:var(--muted); font-weight:500; }
+
+  .content{ padding: 1.4rem 1.1rem 3rem; }
+  @media (min-width:992px){ .content{ padding: 1.8rem 2rem 3.5rem; } }
+
+  .page-head{ margin-bottom: 1.5rem; }
+  .page-head h1{ font-size: 1.55rem; font-weight:600; margin:0 0 .25rem; }
+  .page-head p{ color:var(--muted); font-size:.9rem; margin:0; }
+
+  /* ============================================================
+     4. STAT CARDS
+     ============================================================ */
+  .stat-grid{
+    display:grid; grid-template-columns: repeat(2,1fr); gap: .9rem;
+    margin-bottom: 1.6rem;
+  }
+  @media (min-width:768px){ .stat-grid{ grid-template-columns: repeat(4,1fr); } }
+
+  .stat-card{
+    background: var(--card); border:1px solid var(--border); border-radius: var(--radius-md);
+    padding: 1.1rem 1.2rem;
+  }
+  .stat-card .top-row{ display:flex; align-items:flex-start; justify-content:space-between; margin-bottom:.7rem; }
+  .stat-icon{
+    width:36px; height:36px; border-radius:10px;
+    display:flex; align-items:center; justify-content:center;
+  }
+  .stat-card .value{ font-family:'Fraunces',serif; font-size:1.85rem; font-weight:600; line-height:1; }
+  .stat-card .label{ font-size:.8rem; color:var(--muted); margin-top:.3rem; }
+  .stat-trend{ font-size:.72rem; font-weight:700; padding:.15rem .45rem; border-radius:999px; }
+  .stat-trend.up{ color:#1F5145; background: var(--petugas-tint); }
+  .stat-trend.warn{ color:var(--warn); background: var(--warn-tint); }
+
+  /* ============================================================
+     5. PANELS: chart & donut
+     ============================================================ */
+  .panel-row{ display:grid; grid-template-columns: 1fr; gap: 1rem; margin-bottom: 1.6rem; }
+  @media (min-width: 992px){ .panel-row{ grid-template-columns: 1.6fr 1fr; } }
+
+  .panel{
+    background: var(--card); border:1px solid var(--border); border-radius: var(--radius-lg);
+    padding: 1.3rem 1.4rem;
+  }
+  .panel-head{ display:flex; align-items:center; justify-content:space-between; margin-bottom: 1.1rem; }
+  .panel-head h2{ font-size: 1.02rem; font-weight:700; margin:0; }
+  .panel-head p{ font-size:.78rem; color:var(--muted); margin:.15rem 0 0; }
+  .panel-tag{
+    font-size:.72rem; font-weight:600; color:var(--admin);
+    background: var(--admin-tint); padding:.2rem .55rem; border-radius:999px;
+  }
+
+  .bars{ display:flex; align-items:flex-end; gap: .9rem; height:170px; padding-top: 1rem; }
+  .bar-col{ flex:1; display:flex; flex-direction:column; align-items:center; justify-content:flex-end; height:100%; }
+  .bar-col .bar{
+    width: 60%; max-width:34px;
+    background: linear-gradient(180deg, #E7B368, var(--admin));
+    border-radius: 6px 6px 3px 3px;
+    transform-origin: bottom;
+    transform: scaleY(0);
+    transition: transform .55s cubic-bezier(.2,.8,.2,1);
+  }
+  .bar-col .m-label{ font-size:.7rem; color:var(--muted); margin-top:.5rem; }
+  .bar-col .m-value{ font-size:.7rem; font-weight:700; color:var(--ink); margin-bottom:.3rem; }
+
+  .donut-wrap{ display:flex; flex-direction:column; align-items:center; }
+  .donut{
+    width:150px; height:150px; border-radius:50%;
+    background: conic-gradient(
+      var(--petugas) 0% 75%,
+      var(--warn) 75% 92%,
+      var(--danger) 92% 100%
+    );
+    display:flex; align-items:center; justify-content:center;
+    margin-bottom: 1.1rem;
+    position: relative;
+  }
+  .donut::before{
+    content:""; position:absolute; width:96px; height:96px; border-radius:50%;
+    background: var(--card);
+  }
+  .donut-center{ position:relative; text-align:center; }
+  .donut-center b{ display:block; font-family:'Fraunces',serif; font-size:1.3rem; }
+  .donut-center span{ font-size:.65rem; color:var(--muted); }
+
+  .legend{ width:100%; }
+  .legend-item{ display:flex; align-items:center; gap:.5rem; font-size:.8rem; padding:.3rem 0; }
+  .legend-item .sw{ width:9px;height:9px;border-radius:50%; flex-shrink:0; }
+  .legend-item .val{ margin-left:auto; font-weight:700; }
+
+  /* ============================================================
+     6. MENU KELOLA DATA
+     ============================================================ */
+  .section-head{ display:flex; align-items:center; justify-content:space-between; margin: 0 0 1rem; }
+  .section-head h2{ font-size: 1.08rem; font-weight:700; margin:0; }
+  .section-head p{ font-size:.82rem; color:var(--muted); margin:.15rem 0 0; }
+
+  .menu-grid{
+    display:grid; grid-template-columns: 1fr; gap: .9rem; margin-bottom: 1.7rem;
+  }
+  @media (min-width:576px){ .menu-grid{ grid-template-columns: repeat(2,1fr); } }
+  @media (min-width:992px){ .menu-grid{ grid-template-columns: repeat(3,1fr); } }
+
+  .menu-card{
+    display:flex; align-items:flex-start; gap:.85rem;
+    background: var(--card); border:1px solid var(--border); border-radius: var(--radius-md);
+    padding: 1.05rem 1.1rem;
+    transition: border-color .15s ease, transform .12s ease, box-shadow .15s ease;
+    color: inherit;
+  }
+  .menu-card:hover{
+    border-color: var(--admin);
+    transform: translateY(-2px);
+    box-shadow: 0 10px 22px -14px rgba(16,27,51,.35);
+  }
+  .menu-card .m-icon{
+    width:40px; height:40px; border-radius:11px; flex-shrink:0;
+    display:flex; align-items:center; justify-content:center;
+  }
+  .menu-card h3{ font-size:.92rem; font-weight:700; margin:0 0 .2rem; color:var(--ink); }
+  .menu-card p{ font-size:.78rem; color:var(--muted); margin:0; line-height:1.45; }
+  .menu-card .arrow{ margin-left:auto; color:var(--muted); flex-shrink:0; align-self:center; }
+
+  /* ============================================================
+     7. TABEL AKTIVITAS
+     ============================================================ */
+  .table-panel{
+    background: var(--card); border:1px solid var(--border); border-radius: var(--radius-lg);
+    overflow:hidden;
+  }
+  .table-panel-head{
+    padding: 1.2rem 1.3rem .9rem;
+    display:flex; align-items:center; justify-content:space-between; gap:.8rem; flex-wrap:wrap;
+  }
+  .table-panel-head h2{ font-size:1.02rem; font-weight:700; margin:0; }
+  .table-panel-head p{ font-size:.78rem; color:var(--muted); margin:.15rem 0 0; }
+
+  .mini-filter{
+    display:flex; align-items:center; gap:.4rem;
+    background: var(--paper); border:1.5px solid var(--border); border-radius: var(--radius-sm);
+    padding: .4rem .65rem;
+  }
+  .mini-filter input{
+    border:none; outline:none; background:transparent; font-size:.82rem; font-family:inherit;
+    width: 170px;
+  }
+
+  table.activity{ width:100%; border-collapse:collapse; font-size:.85rem; }
+  table.activity thead th{
+    text-align:left; font-size:.72rem; text-transform:none; color:var(--muted);
+    font-weight:600; padding: .6rem 1.3rem; border-top:1px solid var(--border); border-bottom:1px solid var(--border);
+    background: #FCFBF9;
+  }
+  table.activity tbody td{
+    padding: .8rem 1.3rem; border-bottom:1px solid var(--border); vertical-align:middle;
+  }
+  table.activity tbody tr:last-child td{ border-bottom:none; }
+  table.activity tbody tr:hover{ background: #FCFAF5; }
+
+  .who{ display:flex; align-items:center; gap:.55rem; }
+  .who .initials{
+    width:30px;height:30px;border-radius:50%; background: var(--anggota-tint); color:var(--anggota);
+    display:flex;align-items:center;justify-content:center; font-size:.7rem; font-weight:700; flex-shrink:0;
+  }
+  .who .name{ font-weight:600; font-size:.83rem; }
+  .who .sub{ font-size:.72rem; color:var(--muted); }
+
+  .badge-status{
+    font-size:.72rem; font-weight:700; padding:.25rem .6rem; border-radius:999px; display:inline-block;
+  }
+  .badge-status.approved{ color:#1F5145; background: var(--petugas-tint); }
+  .badge-status.pending{ color:var(--warn); background: var(--warn-tint); }
+  .badge-status.late{ color:var(--danger); background: var(--danger-tint); }
+  .badge-status.returned{ color:var(--anggota); background: var(--anggota-tint); }
+
+  .empty-row{ text-align:center; padding: 2rem 1rem; color:var(--muted); font-size:.85rem; display:none; }
+
+  /* ============================================================
+     TOAST — notifikasi ringan (halaman belum tersedia, dsb.)
+     ============================================================ */
+  .toast-stack{
+    position: fixed; right: 1.1rem; bottom: 1.1rem; z-index: 2000;
+    display:flex; flex-direction:column; gap:.5rem; align-items:flex-end;
+  }
+  .toast{
+    display:flex; align-items:flex-start; gap:.6rem;
+    background:#fff; border:1px solid var(--border); border-radius: var(--radius-md);
+    box-shadow: 0 12px 28px rgba(16,27,51,.14);
+    padding:.8rem 1rem; font-size:.85rem; max-width: 320px;
+    transform: translateY(8px); opacity:0;
+    animation: toast-in .22s ease forwards;
+  }
+  @keyframes toast-in{ to{ transform: translateY(0); opacity:1; } }
+  .toast svg{ flex-shrink:0; margin-top:1px; }
+  .toast b{ display:block; margin-bottom:1px; }
+</style>
+</head>
+<body>
+
+<div class="sb-overlay" id="sbOverlay"></div>
+
+<!-- ============================================================
+     SIDEBAR
+     ============================================================ -->
+<aside class="sidebar" id="sidebar">
+  <div class="sb-brand">
+    <span class="sb-brand-icon" aria-hidden="true">
+      <svg width="18" height="18" viewBox="0 0 24 24" fill="none">
+        <rect x="3" y="4" width="18" height="12" rx="1.6" stroke="#10192E" stroke-width="1.8"/>
+        <path d="M2 19h20" stroke="#10192E" stroke-width="1.8" stroke-linecap="round"/>
+      </svg>
+    </span>
+    <span class="sb-brand-text display-font">SILAS<small>PANEL ADMIN</small></span>
+  </div>
+
+  <div class="sb-scope"><span class="dot"></span> Masuk sebagai Admin — akses penuh</div>
+
+  <nav class="sb-nav">
+    <div class="sb-group-label">Ringkasan</div>
+    <a href="dashboardAdmin.html" class="sb-link active">
+      <svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7"><rect x="3" y="3" width="7" height="9" rx="1.5"/><rect x="14" y="3" width="7" height="5" rx="1.5"/><rect x="14" y="12" width="7" height="9" rx="1.5"/><rect x="3" y="16" width="7" height="5" rx="1.5"/></svg>
+      Dashboard
+    </a>
+
+    <div class="sb-group-label">Kelola Data</div>
+    <a href="crud.html" class="sb-link">
+      <svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7"><rect x="3" y="4" width="18" height="12" rx="1.5"/><path d="M2 19h20" stroke-linecap="round"/></svg>
+      Data Laptop
+      <span class="badge-count">128</span>
+    </a>
+    <a href="kategori.html" class="sb-link">
+      <svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7"><path d="M20.6 12.3 12.7 20a1.9 1.9 0 0 1-2.7 0l-6.9-6.9a1.9 1.9 0 0 1 0-2.7l7.7-7.7c.4-.4.9-.6 1.4-.6H18a2.5 2.5 0 0 1 2.5 2.5v5.9c0 .5-.2 1-.6 1.4Z"/><circle cx="15" cy="9" r="1.4"/></svg>
+      Kategori
+    </a>
+    <a href="lokasi.html" class="sb-link">
+      <svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7"><path d="M12 21s-7-6.1-7-11.4A7 7 0 0 1 19 9.6C19 14.9 12 21 12 21Z"/><circle cx="12" cy="9.4" r="2.4"/></svg>
+      Lokasi Penyimpanan
+    </a>
+    <a href="pengguna.html" class="sb-link">
+      <svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7"><circle cx="9" cy="8" r="3.4"/><path d="M2.5 20c.7-3.6 3.5-6 6.5-6s5.8 2.4 6.5 6"/><path d="M16.5 4.3a3.4 3.4 0 0 1 0 6.6M20.5 20c-.4-2.3-1.7-4.2-3.5-5.2"/></svg>
+      Pengguna
+      <span class="badge-count">341</span>
+    </a>
+
+    <div class="sb-group-label">Operasional</div>
+    <a href="kelola.html" class="sb-link">
+      <svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7"><rect x="5" y="3.5" width="14" height="17" rx="1.6"/><path d="M9 3.5v2.4h6V3.5M8.5 11h7M8.5 15h5" stroke-linecap="round"/></svg>
+      Peminjaman
+      <span class="badge-count">7</span>
+    </a>
+    <a href="laporan.html" class="sb-link">
+      <svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7"><path d="M4 19V5m0 14h16M8 19v-6m4.5 6V9M17 19v-9"/></svg>
+      Laporan
+    </a>
+
+    <div class="sb-group-label">Lainnya</div>
+    <a href="#" class="sb-link js-soon" data-soon="Pengaturan">
+      <svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.7 1.7 0 0 0 .3 1.9l.1.1a2 2 0 1 1-2.9 2.9l-.1-.1a1.7 1.7 0 0 0-1.9-.3 1.7 1.7 0 0 0-1 1.6V21a2 2 0 1 1-4 0v-.2a1.7 1.7 0 0 0-1.1-1.6 1.7 1.7 0 0 0-1.9.3l-.1.1a2 2 0 1 1-2.9-2.9l.1-.1a1.7 1.7 0 0 0 .3-1.9 1.7 1.7 0 0 0-1.6-1H3a2 2 0 1 1 0-4h.2a1.7 1.7 0 0 0 1.6-1.1 1.7 1.7 0 0 0-.3-1.9l-.1-.1a2 2 0 1 1 2.9-2.9l.1.1a1.7 1.7 0 0 0 1.9.3H9a1.7 1.7 0 0 0 1-1.6V3a2 2 0 1 1 4 0v.2a1.7 1.7 0 0 0 1 1.6 1.7 1.7 0 0 0 1.9-.3l.1-.1a2 2 0 1 1 2.9 2.9l-.1.1a1.7 1.7 0 0 0-.3 1.9V9c.2.6.8 1 1.6 1H21a2 2 0 1 1 0 4h-.2a1.7 1.7 0 0 0-1.6 1Z"/></svg>
+      Pengaturan
+    </a>
+  </nav>
+
+  <div class="sb-foot">
+    <div class="sb-user">
+      <span class="sb-avatar">RA</span>
+      <div>
+        <div class="sb-user-name">Neo </div>
+        <div class="sb-user-role">Administrator Sistem</div>
+      </div>
+    </div>
+    <button class="sb-logout" type="button" id="logoutBtn">
+      <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4" stroke-linecap="round"/><path d="M16 17l5-5-5-5M21 12H9" stroke-linecap="round" stroke-linejoin="round"/></svg>
+      Keluar
+    </button>
+  </div>
+</aside>
+
+<!-- ============================================================
+     MAIN
+     ============================================================ -->
+<div class="main">
+
+  <header class="topbar">
+    <button class="burger" id="burgerBtn" aria-label="Buka menu navigasi" aria-expanded="false">
+      <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M3 6h18M3 12h18M3 18h18"/></svg>
+    </button>
+
+    <div class="topbar-search">
+      <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="11" cy="11" r="7"/><path d="m21 21-3.5-3.5" stroke-linecap="round"/></svg>
+      <input type="text" placeholder="Cari aset, pengguna, atau peminjaman…">
+    </div>
+
+    <div class="topbar-actions">
+      <button class="icon-btn" aria-label="Notifikasi">
+        <svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7"><path d="M18 8a6 6 0 1 0-12 0c0 7-3 9-3 9h18s-3-2-3-9"/><path d="M13.7 21a2 2 0 0 1-3.4 0"/></svg>
+        <span class="ping" aria-hidden="true"></span>
+      </button>
+      <div class="topbar-user">
+        <span class="avatar">RA</span>
+        <span>Neo<small>Admin</small></span>
+      </div>
+    </div>
+  </header>
+
+  <div class="content">
+
+    <div class="page-head">
+      <h1 class="display-font">Selamat datang, Neo 👋</h1>
+      <p>Berikut ringkasan inventaris laptop sekolah per Selasa, 1 September 2026.</p>
+    </div>
+
+    <!-- STAT CARDS -->
+    <div class="stat-grid">
+      <div class="stat-card">
+        <div class="top-row">
+          <span class="stat-icon" style="background:var(--admin-tint)">
+            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#B27A22" stroke-width="1.8"><rect x="3" y="4" width="18" height="12" rx="1.6"/><path d="M2 19h20" stroke-linecap="round"/></svg>
+          </span>
+          <span class="stat-trend up">+4 bln ini</span>
+        </div>
+        <div class="value">128</div>
+        <div class="label">Total unit laptop</div>
+      </div>
+
+      <div class="stat-card">
+        <div class="top-row">
+          <span class="stat-icon" style="background:var(--petugas-tint)">
+            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#1F5145" stroke-width="1.8"><path d="M20 6 9 17l-5-5"/></svg>
+          </span>
+          <span class="stat-trend up">75%</span>
+        </div>
+        <div class="value">96</div>
+        <div class="label">Siap dipinjam</div>
+      </div>
+
+      <div class="stat-card">
+        <div class="top-row">
+          <span class="stat-icon" style="background:var(--anggota-tint)">
+            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#4B4483" stroke-width="1.8"><rect x="5" y="3.5" width="14" height="17" rx="1.6"/><path d="M9 3.5v2.4h6V3.5" /></svg>
+          </span>
+          <span class="stat-trend warn">25%</span>
+        </div>
+        <div class="value">32</div>
+        <div class="label">Sedang dipinjam</div>
+      </div>
+
+      <div class="stat-card">
+        <div class="top-row">
+          <span class="stat-icon" style="background:var(--danger-tint)">
+            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#C1443D" stroke-width="1.8"><path d="M12 9v4M12 17h.01"/><path d="M10.3 3.9 1.8 18a2 2 0 0 0 1.7 3h17a2 2 0 0 0 1.7-3L13.7 3.9a2 2 0 0 0-3.4 0Z"/></svg>
+          </span>
+          <span class="stat-trend warn">Perlu cek</span>
+        </div>
+        <div class="value">5</div>
+        <div class="label">Dalam perbaikan</div>
+      </div>
+    </div>
+
+    <!-- CHART + DONUT -->
+    <div class="panel-row">
+      <div class="panel">
+        <div class="panel-head">
+          <div>
+            <h2>Peminjaman per bulan</h2>
+            <p>Jumlah unit yang keluar dari inventaris, Maret–Agustus 2026</p>
+          </div>
+          <span class="panel-tag">6 bulan terakhir</span>
+        </div>
+        <div class="bars" id="barsChart">
+          <div class="bar-col"><span class="m-value">18</span><div class="bar" data-h="45"></div><span class="m-label">Mar</span></div>
+          <div class="bar-col"><span class="m-value">22</span><div class="bar" data-h="55"></div><span class="m-label">Apr</span></div>
+          <div class="bar-col"><span class="m-value">15</span><div class="bar" data-h="37"></div><span class="m-label">Mei</span></div>
+          <div class="bar-col"><span class="m-value">27</span><div class="bar" data-h="68"></div><span class="m-label">Jun</span></div>
+          <div class="bar-col"><span class="m-value">31</span><div class="bar" data-h="78"></div><span class="m-label">Jul</span></div>
+          <div class="bar-col"><span class="m-value">32</span><div class="bar" data-h="80"></div><span class="m-label">Agu</span></div>
+        </div>
+      </div>
+
+      <div class="panel">
+        <div class="panel-head">
+          <div>
+            <h2>Kondisi laptop</h2>
+            <p>Status fisik seluruh unit</p>
+          </div>
+        </div>
+        <div class="donut-wrap">
+          <div class="donut">
+            <div class="donut-center"><b>128</b><span>UNIT</span></div>
+          </div>
+          <div class="legend">
+            <div class="legend-item"><span class="sw" style="background:var(--petugas)"></span> Baik <span class="val">96</span></div>
+            <div class="legend-item"><span class="sw" style="background:var(--warn)"></span> Perlu servis ringan <span class="val">22</span></div>
+            <div class="legend-item"><span class="sw" style="background:var(--danger)"></span> Rusak <span class="val">10</span></div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- MENU KELOLA DATA -->
+    <div class="section-head">
+      <div>
+        <h2>Kelola data</h2>
+        <p>Akses cepat ke seluruh modul pengelolaan inventaris</p>
+      </div>
+    </div>
+
+    <div class="menu-grid">
+      <a href="crud.html" class="menu-card">
+        <span class="m-icon" style="background:var(--admin-tint)">
+          <svg width="19" height="19" viewBox="0 0 24 24" fill="none" stroke="#B27A22" stroke-width="1.7"><rect x="3" y="4" width="18" height="12" rx="1.6"/><path d="M2 19h20" stroke-linecap="round"/></svg>
+        </span>
+        <div>
+          <h3>Data Laptop</h3>
+          <p>Tambah, edit, dan pantau kondisi setiap unit laptop.</p>
+        </div>
+        <svg class="arrow" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M9 6l6 6-6 6" stroke-linecap="round" stroke-linejoin="round"/></svg>
+      </a>
+
+      <a href="kategori.html" class="menu-card">
+        <span class="m-icon" style="background:var(--anggota-tint)">
+          <svg width="19" height="19" viewBox="0 0 24 24" fill="none" stroke="#4B4483" stroke-width="1.7"><path d="M20.6 12.3 12.7 20a1.9 1.9 0 0 1-2.7 0l-6.9-6.9a1.9 1.9 0 0 1 0-2.7l7.7-7.7c.4-.4.9-.6 1.4-.6H18a2.5 2.5 0 0 1 2.5 2.5v5.9c0 .5-.2 1-.6 1.4Z"/><circle cx="15" cy="9" r="1.4"/></svg>
+        </span>
+        <div>
+          <h3>Kategori</h3>
+          <p>Kelompokkan aset berdasarkan jenis dan spesifikasi.</p>
+        </div>
+        <svg class="arrow" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M9 6l6 6-6 6" stroke-linecap="round" stroke-linejoin="round"/></svg>
+      </a>
+
+      <a href="lokasi.html" class="menu-card">
+        <span class="m-icon" style="background:var(--petugas-tint)">
+          <svg width="19" height="19" viewBox="0 0 24 24" fill="none" stroke="#1F5145" stroke-width="1.7"><path d="M12 21s-7-6.1-7-11.4A7 7 0 0 1 19 9.6C19 14.9 12 21 12 21Z"/><circle cx="12" cy="9.4" r="2.4"/></svg>
+        </span>
+        <div>
+          <h3>Lokasi Penyimpanan</h3>
+          <p>Atur ruang/lemari penyimpanan dan kapasitasnya.</p>
+        </div>
+        <svg class="arrow" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M9 6l6 6-6 6" stroke-linecap="round" stroke-linejoin="round"/></svg>
+      </a>
+
+      <a href="pengguna.html" class="menu-card">
+        <span class="m-icon" style="background:var(--admin-tint)">
+          <svg width="19" height="19" viewBox="0 0 24 24" fill="none" stroke="#B27A22" stroke-width="1.7"><circle cx="9" cy="8" r="3.4"/><path d="M2.5 20c.7-3.6 3.5-6 6.5-6s5.8 2.4 6.5 6"/><path d="M16.5 4.3a3.4 3.4 0 0 1 0 6.6M20.5 20c-.4-2.3-1.7-4.2-3.5-5.2"/></svg>
+        </span>
+        <div>
+          <h3>Pengguna</h3>
+          <p>Kelola akun Admin, Petugas, dan Anggota Sekolah.</p>
+        </div>
+        <svg class="arrow" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M9 6l6 6-6 6" stroke-linecap="round" stroke-linejoin="round"/></svg>
+      </a>
+
+      <a href="kelola.html" class="menu-card">
+        <span class="m-icon" style="background:var(--anggota-tint)">
+          <svg width="19" height="19" viewBox="0 0 24 24" fill="none" stroke="#4B4483" stroke-width="1.7"><rect x="5" y="3.5" width="14" height="17" rx="1.6"/><path d="M9 3.5v2.4h6V3.5M8.5 11h7M8.5 15h5" stroke-linecap="round"/></svg>
+        </span>
+        <div>
+          <h3>Peminjaman</h3>
+          <p>Pantau seluruh transaksi pinjam dan kembali.</p>
+        </div>
+        <svg class="arrow" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M9 6l6 6-6 6" stroke-linecap="round" stroke-linejoin="round"/></svg>
+      </a>
+
+      <a href="laporan.html" class="menu-card">
+        <span class="m-icon" style="background:var(--petugas-tint)">
+          <svg width="19" height="19" viewBox="0 0 24 24" fill="none" stroke="#1F5145" stroke-width="1.7"><path d="M4 19V5m0 14h16M8 19v-6m4.5 6V9M17 19v-9"/></svg>
+        </span>
+        <div>
+          <h3>Laporan</h3>
+          <p>Unduh ringkasan inventaris dan riwayat peminjaman.</p>
+        </div>
+        <svg class="arrow" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M9 6l6 6-6 6" stroke-linecap="round" stroke-linejoin="round"/></svg>
+      </a>
+    </div>
+
+    <!-- TABEL AKTIVITAS -->
+    <div class="table-panel">
+      <div class="table-panel-head">
+        <div>
+          <h2>Aktivitas peminjaman terbaru</h2>
+          <p>7 transaksi terakhir di seluruh sekolah</p>
+        </div>
+        <div class="mini-filter">
+          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="11" cy="11" r="7"/><path d="m21 21-3.5-3.5" stroke-linecap="round"/></svg>
+          <input type="text" id="activitySearch" placeholder="Cari nama atau aset…">
+        </div>
+      </div>
+
+      <div style="overflow-x:auto;">
+        <table class="activity" id="activityTable">
+          <thead>
+            <tr>
+              <th>Peminjam</th>
+              <th>Aset</th>
+              <th>Tanggal Pinjam</th>
+              <th>Jatuh Tempo</th>
+              <th>Status</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr>
+              <td><div class="who"><span class="initials">DP</span><div><div class="name">Dewi Puspita</div><div class="sub">Guru — Kimia</div></div></div></td>
+              <td>LT-014 · Lenovo ThinkPad E14</td>
+              <td>29 Agu 2026</td>
+              <td>5 Sep 2026</td>
+              <td><span class="badge-status approved">Disetujui</span></td>
+            </tr>
+            <tr>
+              <td><div class="who"><span class="initials">AR</span><div><div class="name">Ahmad Rizki</div><div class="sub">Siswa — XII IPA 2</div></div></div></td>
+              <td>LT-058 · Asus Vivobook 14</td>
+              <td>30 Agu 2026</td>
+              <td>2 Sep 2026</td>
+              <td><span class="badge-status pending">Menunggu</span></td>
+            </tr>
+            <tr>
+              <td><div class="who"><span class="initials">SN</span><div><div class="name">Siti Nuraini</div><div class="sub">Staf — Tata Usaha</div></div></div></td>
+              <td>LT-002 · HP ProBook 440</td>
+              <td>18 Agu 2026</td>
+              <td>25 Agu 2026</td>
+              <td><span class="badge-status late">Terlambat</span></td>
+            </tr>
+            <tr>
+              <td><div class="who"><span class="initials">BW</span><div><div class="name">Budi Wicaksono</div><div class="sub">Guru — Fisika</div></div></div></td>
+              <td>LT-071 · Lenovo ThinkPad E14</td>
+              <td>15 Agu 2026</td>
+              <td>22 Agu 2026</td>
+              <td><span class="badge-status returned">Dikembalikan</span></td>
+            </tr>
+            <tr>
+              <td><div class="who"><span class="initials">MF</span><div><div class="name">Melati Fadhila</div><div class="sub">Siswa — XI IPS 1</div></div></div></td>
+              <td>LT-033 · Acer Aspire 5</td>
+              <td>31 Agu 2026</td>
+              <td>7 Sep 2026</td>
+              <td><span class="badge-status pending">Menunggu</span></td>
+            </tr>
+            <tr>
+              <td><div class="who"><span class="initials">HG</span><div><div class="name">Hendra Gunawan</div><div class="sub">Guru — TIK</div></div></div></td>
+              <td>LT-009 · Asus Vivobook 14</td>
+              <td>12 Agu 2026</td>
+              <td>19 Agu 2026</td>
+              <td><span class="badge-status returned">Dikembalikan</span></td>
+            </tr>
+            <tr>
+              <td><div class="who"><span class="initials">YP</span><div><div class="name">Yulia Permatasari</div><div class="sub">Siswa — X IPA 3</div></div></div></td>
+              <td>LT-046 · HP ProBook 440</td>
+              <td>27 Agu 2026</td>
+              <td>3 Sep 2026</td>
+              <td><span class="badge-status approved">Disetujui</span></td>
+            </tr>
+          </tbody>
+        </table>
+        <p class="empty-row" id="emptyRow">Tidak ada transaksi yang cocok dengan pencarian.</p>
+      </div>
+    </div>
+
+  </div>
+</div>
+
+<script>
+(function(){
+  "use strict";
+
+  /* ---------------- Sidebar toggle (mobile) ---------------- */
+  var sidebar   = document.getElementById('sidebar');
+  var overlay   = document.getElementById('sbOverlay');
+  var burgerBtn = document.getElementById('burgerBtn');
+
+  function openSidebar(){
+    sidebar.classList.add('is-open');
+    overlay.classList.add('is-open');
+    burgerBtn.setAttribute('aria-expanded', 'true');
+  }
+  function closeSidebar(){
+    sidebar.classList.remove('is-open');
+    overlay.classList.remove('is-open');
+    burgerBtn.setAttribute('aria-expanded', 'false');
+  }
+  burgerBtn.addEventListener('click', function(){
+    sidebar.classList.contains('is-open') ? closeSidebar() : openSidebar();
+  });
+  overlay.addEventListener('click', closeSidebar);
+  window.addEventListener('resize', function(){
+    if(window.innerWidth >= 992) closeSidebar();
+  });
+
+  /* ---------------- Animate bar chart on load ---------------- */
+  var bars = document.querySelectorAll('#barsChart .bar');
+  requestAnimationFrame(function(){
+    setTimeout(function(){
+      bars.forEach(function(bar){
+        var h = bar.getAttribute('data-h');
+        bar.style.transform = 'scaleY(' + (h/100) + ')';
+        bar.style.height = '100%';
+      });
+    }, 120);
+  });
+  // set base height to 100% and rely on scaleY from bottom
+  bars.forEach(function(bar){ bar.style.height = '100%'; });
+
+  /* ---------------- Table search filter ---------------- */
+  var searchInput = document.getElementById('activitySearch');
+  var rows = document.querySelectorAll('#activityTable tbody tr');
+  var emptyRow = document.getElementById('emptyRow');
+
+  searchInput.addEventListener('input', function(){
+    var q = this.value.trim().toLowerCase();
+    var visibleCount = 0;
+    rows.forEach(function(row){
+      var match = row.textContent.toLowerCase().indexOf(q) !== -1;
+      row.style.display = match ? '' : 'none';
+      if(match) visibleCount++;
+    });
+    emptyRow.style.display = visibleCount === 0 ? 'block' : 'none';
+  });
+
+  /* ---------------- Toast ringan ---------------- */
+  var toastStack = document.createElement('div');
+  toastStack.className = 'toast-stack';
+  document.body.appendChild(toastStack);
+
+  function showToast(title, msg){
+    var el = document.createElement('div');
+    el.className = 'toast';
+    el.innerHTML = '<svg width="17" height="17" viewBox="0 0 24 24" fill="none"><circle cx="12" cy="12" r="10" fill="var(--admin)"/><path d="M12 8v5M12 16.5v.01" stroke="#3A2A0C" stroke-width="1.8" stroke-linecap="round"/></svg>' +
+      '<span><b>' + title + '</b>' + msg + '</span>';
+    toastStack.appendChild(el);
+    setTimeout(function(){
+      el.style.transition = 'opacity .25s ease';
+      el.style.opacity = '0';
+      setTimeout(function(){ el.remove(); }, 250);
+    }, 2600);
+  }
+
+  document.querySelectorAll('.js-soon').forEach(function(el){
+    el.addEventListener('click', function(e){
+      e.preventDefault();
+      showToast('Segera hadir — ', (this.getAttribute('data-soon') || 'Modul ini') + ' masih dalam pengembangan.');
+    });
+  });
+
+  /* ---------------- Logout ---------------- */
+  var logoutBtn = document.getElementById('logoutBtn');
+  if(logoutBtn){
+    logoutBtn.addEventListener('click', function(){
+      if(confirm('Keluar dari akun Admin sekarang?')){
+        window.location.href = 'login.html';
+      }
+    });
+  }
+})();
+</script>
+
+</body>
+</html>

@@ -1,0 +1,970 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>SILAS · Kelola Peminjaman (Admin)</title>
+    <!-- Bootstrap 5 + Icon -->
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet" />
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.min.css" />
+    <!-- Google Font (Plus Jakarta Sans + Fraunces, selaras dengan branding SILAS) -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link href="https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,500;9..144,600;9..144,700&family=Plus+Jakarta+Sans:wght@400;500;600;700&display=swap" rel="stylesheet" />
+    <style>
+        /* ===== ROOT ===== */
+        :root {
+            --teal: #2E7D6B;
+            --teal-light: #E4F1EC;
+            --teal-dark: #1F5145;
+            --navy: #101B33;
+            --navy-light: #1A2842;
+            --gray-50: #f8fafc;
+            --gray-100: #f1f5f9;
+            --gray-200: #e2e8f0;
+            --gray-300: #cbd5e1;
+            --gray-400: #94a3b8;
+            --gray-500: #64748b;
+            --gray-600: #475569;
+            --gray-700: #334155;
+            --gray-800: #1e293b;
+            --gray-900: #0f172a;
+            --shadow-sm: 0 1px 2px rgba(0,0,0,0.05);
+            --shadow: 0 4px 12px rgba(0,0,0,0.07);
+            --shadow-lg: 0 8px 30px rgba(0,0,0,0.10);
+            --radius: 12px;
+            --radius-sm: 8px;
+            --transition: 0.25s ease;
+        }
+
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Plus Jakarta Sans', -apple-system, BlinkMacSystemFont, sans-serif;
+            background: var(--gray-50);
+            color: var(--gray-800);
+            display: flex;
+            min-height: 100vh;
+        }
+        .display-font{ font-family: 'Fraunces', Georgia, serif; }
+
+        /* ===== SIDEBAR ===== */
+        .sidebar {
+            width: 260px;
+            background: var(--navy);
+            color: rgba(255,255,255,0.75);
+            padding: 1.5rem 1rem 2rem;
+            display: flex;
+            flex-direction: column;
+            flex-shrink: 0;
+            position: sticky;
+            top: 0;
+            height: 100vh;
+            overflow-y: auto;
+            transition: transform 0.3s ease;
+            z-index: 1050;
+            border-right: 1px solid rgba(255,255,255,0.06);
+        }
+        .sidebar-brand {
+            display: flex;
+            align-items: center;
+            gap: 0.6rem;
+            margin-bottom: 2rem;
+            padding-bottom: 1.25rem;
+            border-bottom: 1px solid rgba(255,255,255,0.08);
+        }
+        .sidebar-brand i {
+            font-size: 1.8rem;
+            color: var(--teal);
+        }
+        .sidebar-brand span {
+            font-weight: 700;
+            font-size: 1.25rem;
+            letter-spacing: -0.3px;
+            color: #fff;
+            font-family: 'Fraunces', Georgia, serif;
+        }
+        .sidebar-brand small {
+            font-weight: 400;
+            font-size: 0.7rem;
+            opacity: 0.6;
+            display: block;
+            margin-top: -2px;
+        }
+        .sidebar-menu {
+            list-style: none;
+            padding: 0;
+            margin: 0 0 1.5rem;
+        }
+        .sidebar-menu li {
+            margin-bottom: 4px;
+        }
+        .sidebar-menu a {
+            display: flex;
+            align-items: center;
+            gap: 0.75rem;
+            padding: 0.6rem 0.9rem;
+            border-radius: var(--radius-sm);
+            color: rgba(255,255,255,0.65);
+            text-decoration: none;
+            font-weight: 500;
+            font-size: 0.9rem;
+            transition: var(--transition);
+        }
+        .sidebar-menu a i {
+            width: 1.25rem;
+            font-size: 1.1rem;
+            text-align: center;
+        }
+        .sidebar-menu a:hover {
+            background: rgba(255,255,255,0.06);
+            color: #fff;
+        }
+        .sidebar-menu a.active {
+            background: rgba(13, 148, 136, 0.2);
+            color: #fff;
+            box-shadow: inset 3px 0 0 var(--teal);
+        }
+        .sidebar-menu .label {
+            font-size: 0.7rem;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+            opacity: 0.4;
+            padding: 0.75rem 0.9rem 0.25rem;
+            font-weight: 600;
+        }
+        .sidebar-footer {
+            margin-top: auto;
+            padding-top: 1.25rem;
+            border-top: 1px solid rgba(255,255,255,0.06);
+            font-size: 0.8rem;
+            color: rgba(255,255,255,0.4);
+        }
+        .sidebar-footer a {
+            color: rgba(255,255,255,0.5);
+            text-decoration: none;
+        }
+        .sidebar-footer a:hover { color: #fff; }
+
+        /* ===== MAIN ===== */
+        .main-content {
+            flex: 1;
+            min-width: 0;
+            padding: 1.5rem 2rem 3rem;
+        }
+
+        /* ===== TOPBAR ===== */
+        .topbar {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            flex-wrap: wrap;
+            gap: 1rem;
+            margin-bottom: 2rem;
+            padding-bottom: 1rem;
+            border-bottom: 1px solid var(--gray-200);
+        }
+        .topbar-left {
+            display: flex;
+            align-items: center;
+            gap: 1rem;
+        }
+        .topbar-left .hamburger {
+            background: none;
+            border: none;
+            font-size: 1.6rem;
+            color: var(--gray-600);
+            padding: 0 0.2rem;
+            display: none;
+            cursor: pointer;
+        }
+        .topbar-left h3 {
+            font-family: 'Fraunces', Georgia, serif;
+            font-weight: 600;
+            font-size: 1.4rem;
+            margin: 0;
+            color: var(--gray-900);
+        }
+        .topbar-left h3 small {
+            font-weight: 400;
+            font-size: 0.85rem;
+            color: var(--gray-500);
+            margin-left: 0.5rem;
+        }
+        .topbar-right {
+            display: flex;
+            align-items: center;
+            gap: 1rem;
+        }
+        .topbar-right .badge-role {
+            background: var(--teal-light);
+            color: var(--teal-dark);
+            padding: 0.35rem 1rem;
+            border-radius: 40px;
+            font-weight: 600;
+            font-size: 0.75rem;
+            letter-spacing: 0.2px;
+        }
+        .topbar-right .avatar {
+            width: 40px;
+            height: 40px;
+            border-radius: 40px;
+            background: var(--teal);
+            color: #fff;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-weight: 600;
+        }
+
+        /* ===== FILTER / TOOLBAR ===== */
+        .toolbar {
+            display: flex;
+            flex-wrap: wrap;
+            align-items: center;
+            justify-content: space-between;
+            gap: 0.75rem 1rem;
+            margin-bottom: 1.5rem;
+        }
+        .toolbar .search-box {
+            position: relative;
+            flex: 1 1 260px;
+            min-width: 180px;
+        }
+        .toolbar .search-box i {
+            position: absolute;
+            left: 12px;
+            top: 50%;
+            transform: translateY(-50%);
+            color: var(--gray-400);
+        }
+        .toolbar .search-box input {
+            width: 100%;
+            padding: 0.5rem 0.75rem 0.5rem 2.4rem;
+            border: 1px solid var(--gray-200);
+            border-radius: 40px;
+            font-size: 0.9rem;
+            background: #fff;
+            transition: var(--transition);
+        }
+        .toolbar .search-box input:focus {
+            outline: none;
+            border-color: var(--teal);
+            box-shadow: 0 0 0 3px rgba(13,148,136,0.15);
+        }
+        .toolbar .filter-group {
+            display: flex;
+            flex-wrap: wrap;
+            align-items: center;
+            gap: 0.5rem;
+        }
+        .toolbar .filter-group .badge-filter {
+            background: #fff;
+            border: 1px solid var(--gray-200);
+            padding: 0.35rem 1rem;
+            border-radius: 40px;
+            font-size: 0.75rem;
+            font-weight: 500;
+            color: var(--gray-600);
+            cursor: pointer;
+            transition: var(--transition);
+        }
+        .toolbar .filter-group .badge-filter:hover {
+            border-color: var(--teal);
+            color: var(--teal);
+        }
+        .toolbar .filter-group .badge-filter.active {
+            background: var(--teal);
+            border-color: var(--teal);
+            color: #fff;
+        }
+
+        /* ===== TABLE ===== */
+        .table-wrapper {
+            background: #fff;
+            border-radius: var(--radius);
+            box-shadow: var(--shadow);
+            overflow: hidden;
+            margin-bottom: 1.5rem;
+        }
+        .table-responsive {
+            overflow-x: auto;
+            padding: 0 0.25rem;
+        }
+        .table {
+            margin: 0;
+            font-size: 0.875rem;
+            min-width: 900px;
+        }
+        .table thead {
+            background: var(--gray-50);
+            border-bottom: 1px solid var(--gray-200);
+        }
+        .table thead th {
+            font-weight: 600;
+            font-size: 0.75rem;
+            text-transform: uppercase;
+            letter-spacing: 0.3px;
+            color: var(--gray-500);
+            padding: 0.8rem 1rem;
+            border: 0;
+            white-space: nowrap;
+        }
+        .table tbody td {
+            padding: 0.8rem 1rem;
+            vertical-align: middle;
+            border-bottom: 1px solid var(--gray-100);
+        }
+        .table tbody tr:last-child td {
+            border-bottom: 0;
+        }
+        .table tbody tr:hover {
+            background: var(--gray-50);
+        }
+
+        .badge-status {
+            font-weight: 500;
+            font-size: 0.7rem;
+            padding: 0.3rem 0.8rem;
+            border-radius: 40px;
+            letter-spacing: 0.2px;
+        }
+        .badge-status.menunggu { background: #fef3c7; color: #92400e; }
+        .badge-status.disetujui { background: #d1fae5; color: #065f46; }
+        .badge-status.dipinjam { background: #dbeafe; color: #1e40af; }
+        .badge-status.terlambat { background: #fee2e2; color: #991b1b; }
+        .badge-status.dikembalikan { background: #e5e7eb; color: #374151; }
+
+        .action-btns {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 0.35rem;
+        }
+        .action-btns .btn-sm {
+            font-size: 0.7rem;
+            padding: 0.2rem 0.7rem;
+            border-radius: 30px;
+            font-weight: 500;
+        }
+        .btn-setujui {
+            background: #d1fae5;
+            color: #065f46;
+            border: 1px solid #a7f3d0;
+        }
+        .btn-setujui:hover {
+            background: #a7f3d0;
+            color: #064e3b;
+        }
+        .btn-tolak {
+            background: #fee2e2;
+            color: #991b1b;
+            border: 1px solid #fecaca;
+        }
+        .btn-tolak:hover {
+            background: #fecaca;
+            color: #7f1d1d;
+        }
+        .btn-kembali {
+            background: #e0e7ff;
+            color: #3730a3;
+            border: 1px solid #c7d2fe;
+        }
+        .btn-kembali:hover {
+            background: #c7d2fe;
+            color: #2e1f8a;
+        }
+
+        .text-muted-small {
+            font-size: 0.75rem;
+            color: var(--gray-400);
+        }
+
+        /* ===== PAGINATION ===== */
+        .pagination-wrap {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            flex-wrap: wrap;
+            gap: 0.5rem 1rem;
+        }
+        .pagination-wrap .info {
+            font-size: 0.85rem;
+            color: var(--gray-500);
+        }
+        .pagination-wrap .pagination {
+            margin: 0;
+            gap: 0.2rem;
+        }
+        .pagination-wrap .page-link {
+            border: 1px solid var(--gray-200);
+            border-radius: var(--radius-sm);
+            color: var(--gray-600);
+            padding: 0.3rem 0.85rem;
+            font-size: 0.8rem;
+            background: #fff;
+        }
+        .pagination-wrap .page-link:hover {
+            background: var(--gray-100);
+            border-color: var(--gray-300);
+        }
+        .pagination-wrap .page-item.active .page-link {
+            background: var(--teal);
+            border-color: var(--teal);
+            color: #fff;
+        }
+
+        /* ===== MODAL ===== */
+        .modal-content {
+            border: 0;
+            border-radius: var(--radius);
+            box-shadow: var(--shadow-lg);
+        }
+        .modal-header {
+            border-bottom: 1px solid var(--gray-100);
+            padding: 1.25rem 1.5rem;
+        }
+        .modal-body { padding: 1.5rem; }
+        .modal-footer { border-top: 1px solid var(--gray-100); padding: 1rem 1.5rem; }
+        .modal .form-label { font-weight: 500; font-size: 0.85rem; }
+        .modal .form-control, .modal .form-select {
+            border-radius: var(--radius-sm);
+            border: 1px solid var(--gray-200);
+            font-size: 0.9rem;
+        }
+        .modal .form-control:focus, .modal .form-select:focus {
+            border-color: var(--teal);
+            box-shadow: 0 0 0 3px rgba(13,148,136,0.12);
+        }
+
+        /* ===== TOAST ===== */
+        .toast-container {
+            position: fixed;
+            bottom: 2rem;
+            right: 2rem;
+            z-index: 9999;
+            display: flex;
+            flex-direction: column;
+            gap: 0.75rem;
+        }
+        .toast-custom {
+            background: #fff;
+            padding: 1rem 1.5rem;
+            border-radius: var(--radius);
+            box-shadow: var(--shadow-lg);
+            border-left: 5px solid var(--teal);
+            min-width: 280px;
+            max-width: 420px;
+            animation: slideUp 0.3s ease;
+            font-size: 0.9rem;
+        }
+        .toast-custom.error {
+            border-left-color: #dc2626;
+        }
+        .toast-custom .toast-title {
+            font-weight: 600;
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+        }
+
+        @keyframes slideUp {
+            from { opacity: 0; transform: translateY(20px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+
+        /* ===== RESPONSIVE ===== */
+        @media (max-width: 992px) {
+            .sidebar {
+                transform: translateX(-100%);
+                position: fixed;
+                width: 280px;
+                height: 100vh;
+                top: 0;
+                left: 0;
+                border-radius: 0;
+            }
+            .sidebar.open {
+                transform: translateX(0);
+            }
+            .topbar-left .hamburger {
+                display: block;
+            }
+            .main-content {
+                padding: 1rem 1.25rem 2rem;
+            }
+        }
+        @media (max-width: 576px) {
+            .toolbar .search-box {
+                flex: 1 1 100%;
+            }
+            .topbar-left h3 small {
+                display: block;
+                margin-left: 0;
+                font-size: 0.7rem;
+            }
+            .table tbody td { padding: 0.5rem 0.6rem; }
+            .action-btns .btn-sm { font-size: 0.65rem; padding: 0.15rem 0.5rem; }
+        }
+
+        /* overlay saat sidebar mobile */
+        .sidebar-overlay {
+            display: none;
+            position: fixed;
+            inset: 0;
+            background: rgba(0,0,0,0.3);
+            z-index: 1040;
+        }
+        .sidebar-overlay.active {
+            display: block;
+        }
+
+        /* utility */
+        .cursor-pointer { cursor: pointer; }
+        .text-truncate-2 {
+            display: -webkit-box;
+            -webkit-line-clamp: 2;
+            -webkit-box-orient: vertical;
+            overflow: hidden;
+        }
+    </style>
+</head>
+<body>
+
+    <!-- ===== SIDEBAR OVERLAY (mobile) ===== -->
+    <div class="sidebar-overlay" id="sidebarOverlay"></div>
+
+    <!-- ===== SIDEBAR ===== -->
+    <aside class="sidebar" id="sidebar">
+        <div class="sidebar-brand">
+            <i class="bi bi-laptop"></i>
+            <div>
+                <span>SILAS</span>
+                <small>Admin</small>
+            </div>
+        </div>
+
+        <ul class="sidebar-menu">
+            <li class="label">Navigasi</li>
+            <li><a href="dashboardAdmin.html"><i class="bi bi-grid-1x2"></i>Dashboard</a></li>
+            <li><a href="kelola.html" class="active"><i class="bi bi-clipboard-data"></i>Kelola Peminjaman</a></li>
+            <li><a href="crud.html"><i class="bi bi-laptop"></i>Data Laptop</a></li>
+            <li><a href="anggota.html"><i class="bi bi-person"></i>Anggota</a></li>
+            <li><a href="lokasi.html"><i class="bi bi-geo-alt"></i>Lokasi</a></li>
+            <li class="label">Laporan</li>
+            <li><a href="laporanPeminjaman.html"><i class="bi bi-file-earmark-bar-graph"></i>Laporan Peminjaman</a></li>
+            <li><a href="kondisi.html"><i class="bi bi-flag"></i>Kondisi Laptop</a></li>
+        </ul>
+
+        <div class="sidebar-footer">
+            <i class="bi bi-box-arrow-right"></i> <a href="#" id="logoutLink">Logout</a>
+            <div class="mt-1" style="opacity:0.4; font-size:0.7rem;">SILAS v1.0</div>
+        </div>
+    </aside>
+
+    <!-- ===== MAIN ===== -->
+    <main class="main-content">
+        <!-- TOPBAR -->
+        <header class="topbar">
+            <div class="topbar-left">
+                <button class="hamburger" id="hamburgerBtn" aria-label="Toggle sidebar">
+                    <i class="bi bi-list"></i>
+                </button>
+                <h3>
+                    Kelola Peminjaman
+                    <small>· antrean &amp; persetujuan</small>
+                </h3>
+            </div>
+            <div class="topbar-right">
+                <span class="badge-role"><i class="bi bi-person-badge me-1"></i>Admin</span>
+                <div class="avatar">PS</div>
+            </div>
+        </header>
+
+        <!-- TOOLBAR FILTER -->
+        <div class="toolbar">
+            <div class="search-box">
+                <i class="bi bi-search"></i>
+                <input type="text" id="searchInput" placeholder="Cari peminjam / kode aset..." aria-label="Cari peminjaman" />
+            </div>
+            <div class="filter-group" id="filterGroup">
+                <span class="badge-filter active" data-filter="semua">Semua</span>
+                <span class="badge-filter" data-filter="menunggu">Menunggu</span>
+                <span class="badge-filter" data-filter="disetujui">Disetujui</span>
+                <span class="badge-filter" data-filter="dipinjam">Dipinjam</span>
+                <span class="badge-filter" data-filter="terlambat">Terlambat</span>
+                <span class="badge-filter" data-filter="dikembalikan">Dikembalikan</span>
+            </div>
+        </div>
+
+        <!-- TABLE -->
+        <div class="table-wrapper">
+            <div class="table-responsive">
+                <table class="table" id="loanTable">
+                    <thead>
+                        <tr>
+                            <th>Peminjam</th>
+                            <th>Aset</th>
+                            <th>Tanggal Pinjam</th>
+                            <th>Rencana Kembali</th>
+                            <th>Status</th>
+                            <th style="min-width:160px;">Aksi</th>
+                        </tr>
+                    </thead>
+                    <tbody id="tableBody">
+                        <!-- data akan di-render JS -->
+                    </tbody>
+                </table>
+            </div>
+        </div>
+
+        <!-- PAGINATION -->
+        <div class="pagination-wrap">
+            <div class="info" id="paginationInfo">Menampilkan 1–5 dari 8 data</div>
+            <nav>
+                <ul class="pagination" id="paginationControls">
+                    <!-- JS render -->
+                </ul>
+            </nav>
+        </div>
+    </main>
+
+    <!-- ===== MODAL KONFIRMASI ===== -->
+    <div class="modal fade" id="actionModal" tabindex="-1" aria-hidden="true">
+        <div class="modal-dialog modal-dialog-centered">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title" id="modalTitle">Konfirmasi Aksi</h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+                </div>
+                <div class="modal-body" id="modalBody">
+                    <!-- konten dinamis -->
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Batal</button>
+                    <button type="button" class="btn btn-primary" id="modalConfirmBtn">Ya, lanjutkan</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- ===== TOAST CONTAINER ===== -->
+    <div class="toast-container" id="toastContainer"></div>
+
+    <!-- ===== SCRIPTS ===== -->
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+    <script>
+        (function() {
+            'use strict';
+
+            // ======================= DATA DUMMY =======================
+            const dummyData = [
+                { id: 1, peminjam: 'Ahmad Fauzi', aset: 'LENOVO T14 (AS-102)', tglPinjam: '2026-08-20', tglKembali: '2026-08-27', status: 'menunggu' },
+                { id: 2, peminjam: 'Siti Nurhaliza', aset: 'MACBOOK PRO 14 (AS-204)', tglPinjam: '2026-08-18', tglKembali: '2026-08-25', status: 'disetujui' },
+                { id: 3, peminjam: 'Budi Santoso', aset: 'ASUS VIVOBOOK (AS-311)', tglPinjam: '2026-08-15', tglKembali: '2026-08-22', status: 'dipinjam' },
+                { id: 4, peminjam: 'Dewi Lestari', aset: 'DELL XPS 13 (AS-007)', tglPinjam: '2026-08-10', tglKembali: '2026-08-17', status: 'terlambat' },
+                { id: 5, peminjam: 'Rizky Ramadhan', aset: 'HP PAVILION (AS-415)', tglPinjam: '2026-08-05', tglKembali: '2026-08-12', status: 'dikembalikan' },
+                { id: 6, peminjam: 'Maya Sari', aset: 'LENOVO T14 (AS-103)', tglPinjam: '2026-08-22', tglKembali: '2026-08-29', status: 'menunggu' },
+                { id: 7, peminjam: 'Agus Prasetyo', aset: 'MACBOOK AIR M2 (AS-206)', tglPinjam: '2026-08-19', tglKembali: '2026-08-26', status: 'menunggu' },
+                { id: 8, peminjam: 'Rina Yulianti', aset: 'ASUS ROG (AS-315)', tglPinjam: '2026-08-12', tglKembali: '2026-08-19', status: 'dikembalikan' },
+            ];
+
+            // ======================= STATE =======================
+            let currentData = [...dummyData];
+            let filteredData = [...currentData];
+            let currentFilter = 'semua';
+            let currentPage = 1;
+            const rowsPerPage = 5;
+
+            // DOM refs
+            const tbody = document.getElementById('tableBody');
+            const searchInput = document.getElementById('searchInput');
+            const filterGroup = document.getElementById('filterGroup');
+            const paginationControls = document.getElementById('paginationControls');
+            const paginationInfo = document.getElementById('paginationInfo');
+
+            // Modal elements
+            const modalEl = document.getElementById('actionModal');
+            const modalTitle = document.getElementById('modalTitle');
+            const modalBody = document.getElementById('modalBody');
+            const modalConfirmBtn = document.getElementById('modalConfirmBtn');
+            let modalAction = null; // { type, rowId, rowData }
+
+            // ======================= UTILITY =======================
+            function formatDate(dateStr) {
+                if (!dateStr) return '-';
+                const d = new Date(dateStr + 'T00:00:00');
+                return d.toLocaleDateString('id-ID', { day: '2-digit', month: 'short', year: 'numeric' });
+            }
+
+            function statusBadge(status) {
+                const map = {
+                    menunggu: 'Menunggu',
+                    disetujui: 'Disetujui',
+                    dipinjam: 'Dipinjam',
+                    terlambat: 'Terlambat',
+                    dikembalikan: 'Dikembalikan'
+                };
+                return `<span class="badge-status ${status}">${map[status] || status}</span>`;
+            }
+
+            function renderActionButtons(row) {
+                const s = row.status;
+                let btns = '';
+                if (s === 'menunggu') {
+                    btns += `<button class="btn btn-sm btn-setujui action-btn" data-action="setujui" data-id="${row.id}">Setujui</button>`;
+                    btns += `<button class="btn btn-sm btn-tolak action-btn" data-action="tolak" data-id="${row.id}">Tolak</button>`;
+                } else if (s === 'disetujui' || s === 'dipinjam') {
+                    btns += `<button class="btn btn-sm btn-kembali action-btn" data-action="kembali" data-id="${row.id}">Catat Pengembalian</button>`;
+                } else {
+                    btns += `<span class="text-muted-small"><i class="bi bi-check-circle"></i> Selesai</span>`;
+                }
+                return `<div class="action-btns">${btns}</div>`;
+            }
+
+            // ======================= RENDER TABLE =======================
+            function renderTable() {
+                // filter
+                let data = [...currentData];
+                if (currentFilter !== 'semua') {
+                    data = data.filter(d => d.status === currentFilter);
+                }
+                const query = searchInput.value.trim().toLowerCase();
+                if (query !== '') {
+                    data = data.filter(d =>
+                        d.peminjam.toLowerCase().includes(query) ||
+                        d.aset.toLowerCase().includes(query) ||
+                        d.id.toString().includes(query)
+                    );
+                }
+                filteredData = data;
+
+                // paginate
+                const total = filteredData.length;
+                const totalPages = Math.ceil(total / rowsPerPage) || 1;
+                if (currentPage > totalPages) currentPage = totalPages;
+                const start = (currentPage - 1) * rowsPerPage;
+                const end = Math.min(start + rowsPerPage, total);
+                const pageItems = filteredData.slice(start, end);
+
+                // render rows
+                if (pageItems.length === 0) {
+                    tbody.innerHTML = `<tr><td colspan="6" class="text-center py-4 text-muted">Tidak ada data yang cocok</td></tr>`;
+                } else {
+                    tbody.innerHTML = pageItems.map(row => `
+                        <tr>
+                            <td><strong>${row.peminjam}</strong></td>
+                            <td>${row.aset}</td>
+                            <td>${formatDate(row.tglPinjam)}</td>
+                            <td>${formatDate(row.tglKembali)}</td>
+                            <td>${statusBadge(row.status)}</td>
+                            <td>${renderActionButtons(row)}</td>
+                        </tr>
+                    `).join('');
+                }
+
+                // update pagination info
+                const startNum = total === 0 ? 0 : start + 1;
+                paginationInfo.textContent = total === 0 ?
+                    'Tidak ada data' :
+                    `Menampilkan ${startNum}–${end} dari ${total} data`;
+
+                // render pagination
+                renderPagination(totalPages);
+            }
+
+            function renderPagination(totalPages) {
+                let html = '';
+                html += `<li class="page-item ${currentPage === 1 ? 'disabled' : ''}">
+                            <a class="page-link" href="#" data-page="prev">‹</a>
+                        </li>`;
+                for (let i = 1; i <= totalPages; i++) {
+                    html += `<li class="page-item ${i === currentPage ? 'active' : ''}">
+                                <a class="page-link" href="#" data-page="${i}">${i}</a>
+                            </li>`;
+                }
+                html += `<li class="page-item ${currentPage === totalPages ? 'disabled' : ''}">
+                            <a class="page-link" href="#" data-page="next">›</a>
+                        </li>`;
+                paginationControls.innerHTML = html;
+            }
+
+            // ======================= FILTER & SEARCH EVENTS =======================
+            // filter chips
+            filterGroup.addEventListener('click', function(e) {
+                const chip = e.target.closest('.badge-filter');
+                if (!chip) return;
+                filterGroup.querySelectorAll('.badge-filter').forEach(c => c.classList.remove('active'));
+                chip.classList.add('active');
+                currentFilter = chip.dataset.filter;
+                currentPage = 1;
+                renderTable();
+            });
+
+            // search (debounce)
+            let searchTimer;
+            searchInput.addEventListener('input', function() {
+                clearTimeout(searchTimer);
+                searchTimer = setTimeout(() => {
+                    currentPage = 1;
+                    renderTable();
+                }, 300);
+            });
+
+            // pagination clicks (event delegation)
+            paginationControls.addEventListener('click', function(e) {
+                const link = e.target.closest('.page-link');
+                if (!link) return;
+                e.preventDefault();
+                const page = link.dataset.page;
+                if (page === 'prev') {
+                    if (currentPage > 1) currentPage--;
+                } else if (page === 'next') {
+                    const total = Math.ceil(filteredData.length / rowsPerPage) || 1;
+                    if (currentPage < total) currentPage++;
+                } else {
+                    currentPage = parseInt(page, 10);
+                }
+                renderTable();
+            });
+
+            // ======================= ACTION BUTTONS (delegation) =======================
+            tbody.addEventListener('click', function(e) {
+                const btn = e.target.closest('.action-btn');
+                if (!btn) return;
+                const action = btn.dataset.action;
+                const id = parseInt(btn.dataset.id, 10);
+                const row = currentData.find(d => d.id === id);
+                if (!row) return;
+
+                // buka modal
+                const modal = new bootstrap.Modal(modalEl);
+                let title = '', body = '', confirmText = '', confirmClass = 'btn-primary';
+
+                if (action === 'setujui') {
+                    title = 'Setujui Peminjaman';
+                    body = `<p>Anda akan menyetujui peminjaman oleh <strong>${row.peminjam}</strong> untuk aset <strong>${row.aset}</strong>.</p><p class="text-muted small">Tanggal pinjam: ${formatDate(row.tglPinjam)} · Rencana kembali: ${formatDate(row.tglKembali)}</p>`;
+                    confirmText = 'Ya, Setujui';
+                    confirmClass = 'btn-success';
+                } else if (action === 'tolak') {
+                    title = 'Tolak Peminjaman';
+                    body = `<p>Anda akan menolak peminjaman oleh <strong>${row.peminjam}</strong> untuk aset <strong>${row.aset}</strong>.</p><p class="text-danger small">Aksi ini tidak dapat dibatalkan.</p>`;
+                    confirmText = 'Ya, Tolak';
+                    confirmClass = 'btn-danger';
+                } else if (action === 'kembali') {
+                    title = 'Catat Pengembalian';
+                    body = `<p>Konfirmasi pengembalian aset <strong>${row.aset}</strong> oleh <strong>${row.peminjam}</strong>.</p><p class="text-muted small">Pastikan kondisi laptop sudah diperiksa.</p>`;
+                    confirmText = 'Ya, Kembalikan';
+                    confirmClass = 'btn-primary';
+                }
+
+                modalTitle.textContent = title;
+                modalBody.innerHTML = body;
+                modalConfirmBtn.textContent = confirmText;
+                modalConfirmBtn.className = `btn ${confirmClass}`;
+                modalAction = { type: action, rowId: id, rowData: row };
+
+                modal.show();
+            });
+
+            // ======================= MODAL CONFIRM =======================
+            modalConfirmBtn.addEventListener('click', function() {
+                if (!modalAction) return;
+                const { type, rowId, rowData } = modalAction;
+                // update data
+                const item = currentData.find(d => d.id === rowId);
+                if (!item) return;
+
+                let toastMsg = '';
+                if (type === 'setujui') {
+                    item.status = 'disetujui';
+                    toastMsg = `Peminjaman oleh ${rowData.peminjam} telah disetujui.`;
+                } else if (type === 'tolak') {
+                    item.status = 'dikembalikan'; // kita anggap tolak = selesai (tidak aktif)
+                    toastMsg = `Peminjaman oleh ${rowData.peminjam} ditolak.`;
+                } else if (type === 'kembali') {
+                    item.status = 'dikembalikan';
+                    toastMsg = `Pengembalian aset ${rowData.aset} oleh ${rowData.peminjam} dicatat.`;
+                }
+
+                // close modal
+                const modal = bootstrap.Modal.getInstance(modalEl);
+                modal.hide();
+
+                // re-render
+                renderTable();
+
+                // show toast
+                showToast(toastMsg, type === 'tolak' ? 'error' : 'success');
+
+                modalAction = null;
+            });
+
+            // ======================= TOAST =======================
+            function showToast(message, type = 'success') {
+                const container = document.getElementById('toastContainer');
+                const toast = document.createElement('div');
+                toast.className = `toast-custom ${type === 'error' ? 'error' : ''}`;
+                toast.innerHTML = `
+                            <div class="toast-title">
+                                <i class="bi ${type === 'error' ? 'bi-x-circle' : 'bi-check-circle'}"></i>
+                                ${type === 'error' ? 'Gagal' : 'Berhasil'}
+                            </div>
+                            <div style="margin-top:4px;">${message}</div>
+                        `;
+                container.appendChild(toast);
+                setTimeout(() => {
+                    toast.style.opacity = '0';
+                    toast.style.transition = 'opacity 0.3s';
+                    setTimeout(() => toast.remove(), 300);
+                }, 3500);
+            }
+
+            // ======================= SIDEBAR MOBILE =======================
+            const sidebar = document.getElementById('sidebar');
+            const overlay = document.getElementById('sidebarOverlay');
+            const hamburger = document.getElementById('hamburgerBtn');
+
+            function toggleSidebar(open) {
+                sidebar.classList.toggle('open', open);
+                overlay.classList.toggle('active', open);
+            }
+
+            hamburger.addEventListener('click', () => toggleSidebar(true));
+            overlay.addEventListener('click', () => toggleSidebar(false));
+
+            // ======================= INIT =======================
+            renderTable();
+
+            // ===== tambahan: auto-close sidebar saat klik link di mobile =====
+            document.querySelectorAll('.sidebar-menu a').forEach(link => {
+                link.addEventListener('click', () => {
+                    if (window.innerWidth <= 992) toggleSidebar(false);
+                });
+            });
+
+            // ======================= HALAMAN BELUM TERSEDIA =======================
+            document.querySelectorAll('.js-soon').forEach(function(link) {
+                link.addEventListener('click', function(e) {
+                    e.preventDefault();
+                    showToast((this.dataset.soon || 'Halaman ini') + ' masih dalam pengembangan.');
+                });
+            });
+
+            // ======================= LOGOUT =======================
+            const logoutLink = document.getElementById('logoutLink');
+            if (logoutLink) {
+                logoutLink.addEventListener('click', function(e) {
+                    e.preventDefault();
+                    if (confirm('Keluar dari akun sekarang?')) {
+                        window.location.href = 'login.html';
+                    }
+                });
+            }
+
+        })();
+    </script>
+</body>
+</html>
